@@ -189,7 +189,7 @@ class UniPiPlatform {
 
         let item = { type: type, address: evok.circuit, alias: alias };
         this.circuits.set(alias, item);
-        // this.log(`adding ${type} ${alias}: ${evok.circuit}`);
+//        this.log(`adding ${type} ${alias}: ${evok.circuit}`);
 
         switch (type) {
             case 'AO':
@@ -282,9 +282,10 @@ class UniPiPlatform {
     }
 
     evok2alias(evok, type) {
-        if (!evok.alias)
-            return this.config.aliases[type + ' ' + evok.circuit];
-        else if (evok.alias.substr(0, 3) == 'al_')
+        let alias = this.config.aliases[type + ' ' + evok.circuit];
+        if (alias)
+            return alias;
+        else if (evok.alias && evok.alias.substr(0, 3) == 'al_')
             return evok.alias.substr(3);
         else
             return evok.alias;
