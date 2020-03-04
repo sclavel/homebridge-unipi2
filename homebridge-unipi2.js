@@ -312,7 +312,7 @@ class UniPiPlatform {
                 circuit.value = evok.value;
                 if (circuit.service)
                     circuit.service.getCharacteristic(this.homebridge.hap.Characteristic.On).updateValue(evok.value);
-                this.processRuleIfAny(alias, evok.value ? "on" : "off");
+                this.processRuleIfAny(evok.value ? "on" : "off", alias);
                 break;
             case 'AO':
                 circuit.fromEvok(evok.value);
@@ -320,7 +320,7 @@ class UniPiPlatform {
                     circuit.service.getCharacteristic(this.homebridge.hap.Characteristic.On).updateValue(circuit.onoff);
                     circuit.service.getCharacteristic(this.homebridge.hap.Characteristic.Brightness).updateValue(circuit.value);
                 }
-                this.processRuleIfAny(alias, "change");
+                this.processRuleIfAny("change", alias);
                 break;
             case 'DI':
                 if (circuit.value == evok.value)
@@ -340,12 +340,12 @@ class UniPiPlatform {
                     }
                     circuit.longClickTimer = setTimeout(() => {
                         circuit.longClickTimer = null;
-                        circuit.value = false;
                         this.log("LONG CLICK", alias);
                         this.processRuleIfAny("longclick", alias);
                     }, 1000);
                 }
                 else {
+                    this.processRuleIfAny("release", alias);
                     if (circuit.longClickTimer) {
                         clearTimeout(circuit.longClickTimer);
                         circuit.longClickTimer = null;
@@ -547,18 +547,14 @@ class UniPiPlatform {
             else if (cmd == 'on' || cmd == 'off')
                 this.setRelayOutputState(circuit, cmd == 'on');
             else if (cmd == 'timer') {
-                if (circuit.timer) {
-                    this.log("reset timer", alias);
+                if (circuit.timer)
                     clearTimeout(circuit.timer);
-                }
-                else {
-                    this.log("set timer", alias);
-                    circuit.timer = setTimeout(() => {
-                        circuit.timer = null;
-                        this.setRelayOutputState(circuit, false);
-                        this.log("fire timer", alias);
-                    }, param * 1000);
-                }
+                this.log("set timer", alias);
+                circuit.timer = setTimeout(() => {
+                    circuit.timer = null;
+                    this.setRelayOutputState(circuit, false);
+                    this.log("fire timer", alias);
+                }, param * 1000);
             }
             else
                 this.log("RULE ERROR - unknown command", cmd);
